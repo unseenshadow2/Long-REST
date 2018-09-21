@@ -14,6 +14,9 @@
 class TcpSocket
 {
 public:
+	TcpSocket() {}
+
+	~TcpSocket() { Close(); }
 
     int Setup()
     {

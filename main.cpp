@@ -1,11 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <csignal>
+#include <sys/stat.h>
 
 #include "network/TcpSocket.hpp"
 #include "network/TcpConnection.hpp"
+#include "network/http/HTTPRequest.hpp"
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 16384
+#define ICO_SIZE 2333
 
 using namespace std;
 
@@ -30,6 +33,28 @@ string GetHTML(string filename)
     return out;
 }
 
+int GetBinary(string filename, char* out, size_t size)
+{
+	ifstream inFile (filename.c_str(), ios::in | ios::binary);
+	struct stat results;
+
+	if (inFile.good())
+	{
+		if (stat(filename.c_str(), &results) == 0)
+		{
+			// The size of the file in bytes is in
+			// results.st_size
+			if (size < results.st_size) { return -2; }
+
+			inFile.read(out, results.st_size);
+
+			return results.st_size;
+		}
+		else { return -1; }
+	}
+	else { return -1; }
+}
+
 void CtrlCHandler(int sig)
 {
 	server.Close();
@@ -51,7 +76,15 @@ int main(int argc, char const *argv[])
 
 	TcpConnection con;
     char buffer[BUFFER_SIZE];
-    string outHtml = GetHTML("resourses/index.html");
+	char ico[ICO_SIZE];
+	string outHtml = GetHTML("resourses/index.html");
+	int icoOutSize = GetBinary("resourses/fav.ico", ico, ICO_SIZE);
+
+	if (icoOutSize != ICO_SIZE) 
+	{ 
+		cout << "Ico size incorrect... Size: " << icoOutSize << endl; 
+	}
+    
     
     server.Setup();
 	server.Listen(3);
@@ -61,13 +94,19 @@ int main(int argc, char const *argv[])
 		// Read and display the data
 		if (con.Read(buffer, BUFFER_SIZE) > 0)
 		{
+			HTTPRequest request = HTTPRequest((string(buffer)));
+
 			// Print buffer
 			cout << "------------------------\n" <<
 			buffer <<
+				"\nMethod: " << request.Method() <<
+				"\nPath: " << request.Path() <<
+				"\nProtocol: " << request.Protocol() <<
 			"\n------------------------" << endl;
-
+			
 			// Send html
-			con.Send(outHtml.c_str(), outHtml.length(), 0);
+			if (request.Path() == "/") { con.Send(outHtml.c_str(), outHtml.length(), 0); }
+			else if (request.Path() == "/favicon.ico") { con.Send(ico, icoOutSize); }
 
 			con.Close();
 		}

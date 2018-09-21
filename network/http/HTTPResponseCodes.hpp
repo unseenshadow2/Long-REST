@@ -1,0 +1,7 @@
+#ifndef HTTP_RESPONSE_CODE_HEADER
+#define HTTP_RESPONSE_CODE_HEADER
+
+#define GET_SUCCESS 200
+#define NOT_FOUND 404
+
+#endif
