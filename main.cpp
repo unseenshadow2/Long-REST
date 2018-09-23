@@ -6,9 +6,12 @@
 #include "network/tcp/TcpSocket.hpp"
 #include "network/tcp/TcpConnection.hpp"
 #include "network/http/HTTPRequest.hpp"
+#include "network/http/HTTPResponse.hpp"
+#include "network/http/HTTPResponseCodes.hpp"
 
 #define BUFFER_SIZE 16384
 #define ICO_SIZE 2333
+#define DEBUG
 
 using namespace std;
 
@@ -100,7 +103,13 @@ int main(int argc, char const *argv[])
 			// Print buffer
 			cout << "------------------------\n" <<
 			buffer <<
-			"\n------------------------" << endl;
+			"\n------------------------" << 
+			#ifdef DEBUG
+			"-------------ToString()-----------\n" <<
+			request.toString() <<
+			"\n-------------ToString()-----------" <<
+			#endif
+			endl;
 			
 			// Send html
 			if (request.Path() == "/") { con.Send(outHtml.c_str(), outHtml.length(), 0); }

@@ -5,20 +5,21 @@
 #include <regex>
 #include <map>
 
+#include "HTTPHeader.hpp"
+
 using namespace std;
 
-class HTTPRequest
+class HTTPRequest : public HTTPHeader
 {
 public:
 	HTTPRequest() {}
-
-	HTTPRequest(std::string request) { ProcessRequest(request); }
-
-	HTTPRequest(const char* request) { ProcessRequest(request); }
+	HTTPRequest(std::string request) { Process(request); }
+	HTTPRequest(const char* request) { Process(request); }
 
 	~HTTPRequest() {}
 
-	bool ProcessRequest(string request)
+	//bool Process(const char* request) { return Process(string(request)); }
+	bool Process(string request)
 	{
 		smatch matches;
 
@@ -28,20 +29,8 @@ public:
 			_path = matches[2];
 			_protocol = matches[3];
 
-			int submatches[] = { 1, 2 };
-			regex_token_iterator<string::iterator> rend;
-			regex_token_iterator<string::iterator> it(request.begin(), request.end(), pairsRegex, submatches);
-			string key;
-			string value;
-			
-			for (; it != rend; it++)
-			{
-				key = *it;
-				value = *++it;
-				_values[key] = value;
-			}
-
-			_isValid = true;
+			// Fill our pairs
+			HTTPHeader::Process(request);
 		}
 		else
 		{
@@ -51,54 +40,26 @@ public:
 		return _isValid;
 	}
 
-	bool ProcessRequest(const char* request) { return ProcessRequest(string(request)); }
-
 	string BuildString() { return BuildString(_method, _path, _protocol); }
-
 	string BuildString(const string method, const string path, const string protocol)
 	{
 		string toReturn;
 
-		toReturn = method + " " + path + " " + protocol + "\n";
+		toReturn = method + " " + path + " " + protocol + HTTP_NEW_LINE;
 
-		for (map<string,string>::iterator it = _values.begin(); it != _values.end(); it++)
-		{
-			toReturn.append(it->first + ": " + it->second + "\n");
-		}
+		// Fill our pairs
+		HTTPHeader::BuildString(toReturn);
 		
 		return toReturn;
 	}
 
-	string toString() { return BuildString(); }
-
-	pair<map<string, string>::iterator, bool> AddValue(string valName)
-	{
-		return _values.insert(pair<string, string>(valName, string()));
-	}
-
-	pair<map<string, string>::iterator, bool> AddValue(string valName, string value)
-	{
-		return _values.insert(pair<string, string>(valName, value));
-	}
-
-	map<string, string>::iterator ValuesBegin() { return _values.begin(); }
-
-	map<string, string>::iterator ValuesEnd() { return _values.end(); }
-
-	int ValueCount() { return _values.size(); }
-
-	bool IsValuesEmpty() { return _values.empty(); }
-
-	void ClearValues() { _values.clear(); }
-
 	// Getters
-	bool IsValid() { return _isValid; }
 	string Method() { return _method; }
 	string Path() { return _path; }
 	string Protocol() { return _protocol; }
 
 	// Setters
-	void SetHead(string method, string path, string protocol)
+	void SetRequestLine(string method, string path, string protocol)
 	{
 		_method = method;
 		_path = path;
@@ -106,10 +67,6 @@ public:
 	}
 
 	// Operators
-	string& operator[](const string valName) { return _values[valName]; }
-	
-	string operator()() { return BuildString(); }
-
 	string operator()(string method, string path, string protocol) { return BuildString(method, path, protocol);}
 
 private:
@@ -117,13 +74,8 @@ private:
 	string _path;
 	string _protocol;
 
-	map<string, string> _values;
-
-	bool _isValid = false;
-
 	// Regexes
 	const regex requestLineRegex = regex(R"((\w+)\s+(\S+)\s+(\S+)(?:\n|\r|\n\r|\r\n))");
-	const regex pairsRegex = regex(R"((\S+): (.+))");
 };
 
 #endif
