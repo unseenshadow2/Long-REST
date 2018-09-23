@@ -2,7 +2,7 @@
 
 compiler='g++'
 sources='main.cpp'
-headers='network/*.hpp'
+headers='network/http/*.hpp network/tcp/*.hpp'
 flags='-std=c++14'
 output='bin/httpTest'
 

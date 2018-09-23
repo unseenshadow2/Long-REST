@@ -3,8 +3,8 @@
 #include <csignal>
 #include <sys/stat.h>
 
-#include "network/TcpSocket.hpp"
-#include "network/TcpConnection.hpp"
+#include "network/tcp/TcpSocket.hpp"
+#include "network/tcp/TcpConnection.hpp"
 #include "network/http/HTTPRequest.hpp"
 
 #define BUFFER_SIZE 16384
@@ -78,17 +78,18 @@ int main(int argc, char const *argv[])
     char buffer[BUFFER_SIZE];
 	char ico[ICO_SIZE];
 	string outHtml = GetHTML("resourses/index.html");
-	int icoOutSize = GetBinary("resourses/fav.ico", ico, ICO_SIZE);
+	int icoOutSize = GetBinary("resourses/favicon.ico", ico, ICO_SIZE);
 
 	if (icoOutSize != ICO_SIZE) 
 	{ 
 		cout << "Ico size incorrect... Size: " << icoOutSize << endl; 
 	}
     
-    
+    // Server setup
     server.Setup();
 	server.Listen(3);
 
+	// Continue to accept until the server isn't good anymore
 	while ((con = server.Accept()).IsGood())
 	{
 		// Read and display the data
@@ -99,14 +100,23 @@ int main(int argc, char const *argv[])
 			// Print buffer
 			cout << "------------------------\n" <<
 			buffer <<
-				"\nMethod: " << request.Method() <<
-				"\nPath: " << request.Path() <<
-				"\nProtocol: " << request.Protocol() <<
 			"\n------------------------" << endl;
 			
 			// Send html
 			if (request.Path() == "/") { con.Send(outHtml.c_str(), outHtml.length(), 0); }
 			else if (request.Path() == "/favicon.ico") { con.Send(ico, icoOutSize); }
+			else 
+			{
+				// Assemble the filepath
+				string filepath("resourses");
+				filepath.append(request.Path());
+
+				// Pull the file
+				int count = GetBinary(filepath, buffer, BUFFER_SIZE);
+
+				// Send the file
+				if (count > 0) { con.Send(buffer, count); }
+			}
 
 			con.Close();
 		}

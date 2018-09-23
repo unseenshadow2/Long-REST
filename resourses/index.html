@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <title>Sent from C++</title>
+		<meta charset="utf-8"/>
+		<title>Sent from C++</title>
+		<link rel="stylesheet" type="text/css" href="test.css">
     </head>
-<body>
+	<script src="test.js"></script>
+	<body onload="test('change_me')">
 
-<h1>This heading was sent by C++</h1>
-<p>This html is pulled from a file and then sent to the web browser...</p>
+		<h1>This heading was sent by C++</h1>
+		<p>This html is pulled from a file and then sent to the web browser...</p>
+		<p id="change_me" class="bad_test">The test failed</p>
 
-</body>
+	</body>
 </html>

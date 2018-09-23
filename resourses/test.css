@@ -1,0 +1,23 @@
+/*
+p.test
+{
+	color: green;
+}
+
+p.bad_test
+{
+	text-decoration: line-through;
+	color: red;
+}
+*/
+
+.test
+{
+	color: green;
+}
+
+.bad_test
+{
+	text-decoration: line-through;
+	color: red;
+}
