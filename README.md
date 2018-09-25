@@ -4,13 +4,13 @@ Long REST is a combination of a TCP/IP and RESTful applications library, with th
 of both. Long REST is intended for simple, personal, and non-commercial applications.
 
 ## Why?
-Long REST is a personal project. One day I was looking at the Raspberry Pi and WebAssembly, which prompted the thought
+Long REST is a personal project. One day I was looking at the [Raspberry Pi] and [WebAssembly], which prompted the thought
 that I wanted to make a simple application web application for me and my friends to work with while playing Dungeons
 and Dragons, as well as many other tabletop roleplaying games. In order to do this, I would need both a HTTP server
 and a server side application to run the program with.
 
 The thought continued that I should try my hand at making a RESTful application. So I decided that I would now need
-a HTTP server, RESTful server-side application, and a RESTful WebAssembly client-side application. I then thought
+a HTTP server, RESTful server-side application, and a RESTful [WebAssembly] client-side application. I then thought
 that I should write my own RESTful library to run my application through and continued to that if I can write my
 own RESTful library that I could use it to write my own HTTP server and combine my entire client-side application
 into a single, multifunction program.
@@ -44,3 +44,6 @@ be able to use to create a multithreaded program.
 * Add more examples with build scripts
 * Move the default example in with the rest of the examples
 * Upgrade build script to build the library, then build all examples
+
+[Raspberry Pi]: https://webassembly.org/
+[WebAssembly]: https://www.raspberrypi.org/
