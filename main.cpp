@@ -8,10 +8,11 @@
 #include "network/http/HTTPRequest.hpp"
 #include "network/http/HTTPResponse.hpp"
 #include "network/http/HTTPResponseCodes.hpp"
+#include "general/globals.hpp"
 
 #define BUFFER_SIZE 16384
 #define ICO_SIZE 2333
-#define DEBUG
+//#define DEBUG
 
 using namespace std;
 
@@ -71,6 +72,13 @@ void SetupSigHandler()
 
    	sigaction(SIGINT, &sigIntHandler, NULL);
 }
+
+void PrintSection(string toPrint, string heading = "")
+{
+	cout << "-------" << heading << "------\n"
+	<< toPrint <<
+	"\n-------" << heading << "-------" << endl;
+}
  
 int main(int argc, char const *argv[])
 {
@@ -79,6 +87,7 @@ int main(int argc, char const *argv[])
 
 	TcpConnection con;
     char buffer[BUFFER_SIZE];
+	char fileBuffer[BUFFER_SIZE];
 	char ico[ICO_SIZE];
 	string outHtml = GetHTML("resourses/index.html");
 	int icoOutSize = GetBinary("resourses/favicon.ico", ico, ICO_SIZE);
@@ -99,32 +108,66 @@ int main(int argc, char const *argv[])
 		if (con.Read(buffer, BUFFER_SIZE) > 0)
 		{
 			HTTPRequest request = HTTPRequest((string(buffer)));
+			HTTPResponse response;
 
-			// Print buffer
-			cout << "------------------------\n" <<
-			buffer <<
-			"\n------------------------" << 
-			#ifdef DEBUG
-			"-------------ToString()-----------\n" <<
-			request.toString() <<
-			"\n-------------ToString()-----------" <<
-			#endif
-			endl;
-			
-			// Send html
-			if (request.Path() == "/") { con.Send(outHtml.c_str(), outHtml.length(), 0); }
-			else if (request.Path() == "/favicon.ico") { con.Send(ico, icoOutSize); }
-			else 
+			if (request.IsValid())
 			{
-				// Assemble the filepath
-				string filepath("resourses");
-				filepath.append(request.Path());
+				// Print buffer
+				PrintSection(string(buffer));
+				#ifdef DEBUG
+				PrintSection(request.toString(), "ToString()");
+				#endif
 
-				// Pull the file
-				int count = GetBinary(filepath, buffer, BUFFER_SIZE);
+				response["Server"] = LONG_REST_VERSION;
+				
+				// Send html
+				if (request.Path() == "/") 
+				{ 
+					response.SetStatusLine(request.Protocol(), OK, "OK");
+					response["Content-Type"] = "text/html; charset=utf-8";
+					string rq = response.BuildString(outHtml);
+					
+					// Send HTML page
+					con.Send(rq.c_str(), rq.length(), 0);
+					PrintSection(rq, "HTML-Response");
+				}
+				else if (request.Path() == "/favicon.ico") 
+				{ 
+					response.SetStatusLine(request.Protocol(), OK, "OK");
+					response["Content-Type"] = "image/x-icon";
+					size_t outSize = response.BuildBuffer(ico, icoOutSize, buffer, BUFFER_SIZE);
 
-				// Send the file
-				if (count > 0) { con.Send(buffer, count); }
+					con.Send(buffer, outSize); 
+					PrintSection(string(buffer), "Favicon-Response");
+				}
+				else 
+				{
+					// Assemble the filepath
+					string filepath("resourses");
+					filepath.append(request.Path());
+
+					// Pull the file
+					int count = GetBinary(filepath, fileBuffer, BUFFER_SIZE);
+
+					// Send the file
+					if (count > 0) 
+					{
+						response.SetStatusLine(request.Protocol(), OK, "OK");
+						size_t resSize = response.BuildBuffer(fileBuffer, count, buffer, BUFFER_SIZE);
+
+						if (resSize > 0) { con.Send(buffer, resSize); }
+						else
+						{
+							// TODO: Add bad buffer error
+						}
+					}
+					else
+					{
+						response.SetStatusLine(request.Protocol(), NOT_FOUND, "FILE NOT FOUND");
+						string toSend = response.toString();
+						con.Send(toSend.c_str(), toSend.size(), 0);
+					}
+				}
 			}
 
 			con.Close();

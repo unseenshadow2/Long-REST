@@ -2,6 +2,7 @@
 #define HTTP_HEADER_HEADER
 
 #define HTTP_NEW_LINE "\r\n"
+#define HTTP_NEW_LINE_SIZE 2
 
 #include <string>
 #include <regex>
@@ -57,7 +58,7 @@ protected:
 	{
 		for (map<string,string>::iterator it = _values.begin(); it != _values.end(); it++)
 		{
-			outString.append(it->first + ": " + it->second + "\n");
+			outString.append(it->first + ": " + it->second + HTTP_NEW_LINE);
 		}
 
 		return outString;

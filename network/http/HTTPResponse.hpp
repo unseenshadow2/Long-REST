@@ -38,7 +38,8 @@ public:
 		return _isValid;
 	}
 
-	string BuildString() { BuildString(_protocol, _statusCode, _reasonPhrase); }
+	string BuildString() { return BuildString(_protocol, _statusCode, _reasonPhrase); }
+	string BuildString(string page) { return BuildString(_protocol, _statusCode, _reasonPhrase, page); }
 	string BuildString(string protocol, string statusCode, string reasonPhrase) 
 	{
 		string toReturn;
@@ -49,6 +50,43 @@ public:
 		HTTPHeader::BuildString(toReturn);
 		
 		return toReturn;
+	}
+
+	// This version is intended to include an html, js, css, or other plaintext pages
+	string BuildString(string protocol, string statusCode, string reasonPhrase, string page)
+	{
+		string toReturn;
+
+		toReturn = BuildString(protocol, statusCode, reasonPhrase);
+		toReturn.append(HTTP_NEW_LINE);
+		toReturn.append(page);
+		
+		return toReturn;
+	}
+
+	// The BuildBuffer() functions are intended for use with binary file types, such as .png
+	size_t BuildBuffer(void* const data, size_t dataSize, void* out, size_t outSize)
+	{
+		string header = BuildString();
+		size_t totalSize = dataSize + header.size() + HTTP_NEW_LINE_SIZE;
+		char * pos;
+
+		// Exception check
+		if (totalSize > outSize) 
+		{
+			// TODO: Add exception
+			return 0;
+		}
+		else
+		{
+			pos = (char*)memcpy(out, header.c_str(), header.size());
+			pos += header.size();
+			memcpy(pos, HTTP_NEW_LINE, HTTP_NEW_LINE_SIZE);
+			pos += HTTP_NEW_LINE_SIZE;
+			memcpy(pos, data, dataSize);
+			
+			return totalSize;
+		}
 	}
 
 	void SetStatusLine(string protocol, string statusCode, string reasonPhrase)

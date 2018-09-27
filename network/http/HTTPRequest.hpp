@@ -43,12 +43,11 @@ public:
 	string BuildString() { return BuildString(_method, _path, _protocol); }
 	string BuildString(const string method, const string path, const string protocol)
 	{
-		string toReturn;
-
-		toReturn = method + " " + path + " " + protocol + HTTP_NEW_LINE;
+		string toReturn = method + " " + path + " " + protocol + HTTP_NEW_LINE;
 
 		// Fill our pairs
 		HTTPHeader::BuildString(toReturn);
+		toReturn += HTTP_NEW_LINE;
 		
 		return toReturn;
 	}
