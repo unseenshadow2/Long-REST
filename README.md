@@ -45,5 +45,5 @@ be able to use to create a multithreaded program.
 * Move the default example in with the rest of the examples
 * Upgrade build script to build the library, then build all examples
 
-[Raspberry Pi]: https://webassembly.org/
-[WebAssembly]: https://www.raspberrypi.org/
+[Raspberry Pi]: https://www.raspberrypi.org/
+[WebAssembly]: https://webassembly.org/

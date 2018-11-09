@@ -1,9 +1,21 @@
 #!/bin/sh
 
 compiler='g++'
-sources='main.cpp'
-headers='network/http/*.hpp network/tcp/*.hpp'
+sources=''
+headers='src/network/http/*.hpp src/network/tcp/*.hpp src/general/*.hpp src/events/*.hpp'
 flags='-std=c++14'
-output='bin/httpTest'
+base_build="$compiler $sources $headers $flags"
 
-$compiler $sources $headers $flags -o $output
+server_sources='src/example/server.cpp'
+server_output='-o bin/httpServer'
+
+client_sources='src/example/client.cpp'
+client_output='-o bin/httpClient'
+
+echo 'Building Server Program'
+$base_build $server_sources $server_output
+echo 'Finished Server Program'
+echo
+echo 'Building Client Program'
+$base_build $client_sources $client_output
+echo 'Finished Client Program'

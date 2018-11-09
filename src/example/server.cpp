@@ -3,18 +3,22 @@
 #include <csignal>
 #include <sys/stat.h>
 
-#include "network/tcp/TcpSocket.hpp"
-#include "network/tcp/TcpConnection.hpp"
-#include "network/http/HTTPRequest.hpp"
-#include "network/http/HTTPResponse.hpp"
-#include "network/http/HTTPResponseCodes.hpp"
-#include "general/globals.hpp"
+#include "../network/tcp/TcpSocket.hpp"
+#include "../network/tcp/TcpConnection.hpp"
+#include "../network/http/HTTPRequest.hpp"
+#include "../network/http/HTTPResponse.hpp"
+#include "../network/http/HTTPResponseCodes.hpp"
+#include "../general/globals.hpp"
+#include "../general/Data.hpp"
 
 #define BUFFER_SIZE 16384
 #define ICO_SIZE 2333
 //#define DEBUG
 
 using namespace std;
+using namespace LongREST::HTTP;
+using namespace LongREST::TCP;
+using namespace LongREST::General;
 
 TcpSocket server;
 struct sigaction sigIntHandler;
@@ -91,6 +95,7 @@ int main(int argc, char const *argv[])
 	char ico[ICO_SIZE];
 	string outHtml = GetHTML("resourses/index.html");
 	int icoOutSize = GetBinary("resourses/favicon.ico", ico, ICO_SIZE);
+	int readSize = 0;
 
 	if (icoOutSize != ICO_SIZE) 
 	{ 
@@ -99,15 +104,19 @@ int main(int argc, char const *argv[])
     
     // Server setup
     server.Setup();
+	server.Bind();
 	server.Listen(3);
 
 	// Continue to accept until the server isn't good anymore
 	while ((con = server.Accept()).IsGood())
 	{
+		readSize = con.Read(buffer, BUFFER_SIZE);
+
 		// Read and display the data
-		if (con.Read(buffer, BUFFER_SIZE) > 0)
+		if (readSize > 0)
 		{
-			HTTPRequest request = HTTPRequest((string(buffer)));
+			buffer[readSize] = '\0';
+			HTTPRequest request = HTTPRequest(string(buffer));
 			HTTPResponse response;
 
 			if (request.IsValid())
@@ -138,6 +147,8 @@ int main(int argc, char const *argv[])
 					size_t outSize = response.BuildBuffer(ico, icoOutSize, buffer, BUFFER_SIZE);
 
 					con.Send(buffer, outSize); 
+
+					buffer[outSize] = '\0';
 					PrintSection(string(buffer), "Favicon-Response");
 				}
 				else 
@@ -154,6 +165,12 @@ int main(int argc, char const *argv[])
 					{
 						response.SetStatusLine(request.Protocol(), OK, "OK");
 						size_t resSize = response.BuildBuffer(fileBuffer, count, buffer, BUFFER_SIZE);
+
+						// Since we convert to a string, add a null value
+						buffer[resSize] = '\0';
+
+						// DEBUG - Show buffer
+						PrintSection(string(buffer), "Buffer InvCpy Test");
 
 						if (resSize > 0) { con.Send(buffer, resSize); }
 						else
