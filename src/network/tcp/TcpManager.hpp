@@ -115,6 +115,10 @@ namespace LongREST
 				});
 			}
 
+			void SetSocketCallback(OnSocketRead callback) { onSockRead = callback; }
+			void SetConnectionCallback(OnConnectionRead callback) { onConnRead = callback; }
+			void SetStdinCallback(OnStdinRead callback) { onStdRead = callback; }
+
 			private:
 			TcpSocket socket;
 			fd_set fdRead;
